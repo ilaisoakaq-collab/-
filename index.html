@@ -1,428 +1,302 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ShoppingCart, Trash2, Plus, Store, Settings, Package, 
-  Tag, Image as ImageIcon, Zap, ChevronRight, Cpu, 
-  MessageSquare, Send, X, Bot, Sparkles
-} from 'lucide-react';
-
-// معلومات المنتجات الأولية
-const initialProducts = [
-  {
-    id: 1,
-    name: 'iPhone 15 Pro Max',
-    price: 13500,
-    category: 'هواتف',
-    image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=800&auto=format&fit=crop',
-    description: 'تصميم من التيتانيوم، شريحة A17 Pro الخارقة، وكاميرا احترافية.'
-  },
-  {
-    id: 2,
-    name: 'MacBook Pro M3',
-    price: 24000,
-    category: 'حواسيب',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop',
-    description: 'قوة لا تضاهى مع معالج M3 الجديد وشاشة Liquid Retina XDR.'
-  },
-  {
-    id: 3,
-    name: 'Sony PlayStation 5',
-    price: 6500,
-    category: 'ألعاب',
-    image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b9087?q=80&w=800&auto=format&fit=crop',
-    description: 'تجربة لعب الجيل الجديد مع رسومات 4K وسرعة تحميل خيالية.'
-  },
-  {
-    id: 4,
-    name: 'Apple Watch Ultra',
-    price: 8900,
-    category: 'ساعات ذكية',
-    image: 'https://images.unsplash.com/photo-1695048065099-2d100fb25c56?q=80&w=800&auto=format&fit=crop',
-    description: 'الساعة الأقوى للمغامرين، هيكل تيتانيوم صلب وبطارية تدوم طويلاً.'
-  }
-];
-
-export default function App() {
-  // حالات المتجر الأساسية
-  const [products, setProducts] = useState(initialProducts);
-  const [view, setView] = useState('store'); 
-  const [cartCount, setCartCount] = useState(0);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  // حالات المساعد الذكي (Jiro)
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatInput, setChatInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [messages, setMessages] = useState([
-    { text: 'مرحباً بك في Electro Ilias! ✨ أنا Jiro، المساعد الذكي ديالك. شنو كتقلب تشري اليوم ولا بغيتي نعاونك تختار؟', sender: 'bot' }
-  ]);
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // النزول التلقائي لآخر رسالة في الشات
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, isChatOpen, isTyping]);
-
-  const [newProduct, setNewProduct] = useState({
-    name: '', price: '', category: 'هواتف', image: '', description: ''
-  });
-
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (!newProduct.name || !newProduct.price) return;
-    const productToAdd = {
-      ...newProduct,
-      id: Date.now(),
-      price: Number(newProduct.price),
-      image: newProduct.image || 'https://images.unsplash.com/photo-1550009158-9ebf6d173303?q=80&w=800&auto=format&fit=crop'
-    };
-    setProducts([productToAdd, ...products]);
-    setNewProduct({ name: '', price: '', category: 'هواتف', image: '', description: '' });
-  };
-
-  const handleDeleteProduct = (id) => {
-    setProducts(products.filter(p => p.id !== id));
-  };
-
-  const addToCart = () => setCartCount(prev => prev + 1);
-
-  // منطق المساعد الذكي Jiro (تحليل الكلمات المفتاحية)
-  const generateBotResponse = (userInput) => {
-    const input = userInput.toLowerCase();
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electro Ilias</title>
     
-    if (input.includes('هاتف') || input.includes('تليفون') || input.includes('ايفون') || input.includes('تلفون')) {
-      const phones = products.filter(p => p.category === 'هواتف');
-      if (phones.length > 0) {
-        return `عندنا هواتف هربانة! بحال "${phones[0].name}" بـ ${phones[0].price} درهم. \nمميزاته: ${phones[0].description}. \nواش بغيتي تشوف حوايج أخرى؟`;
-      }
-      return "حالياً الهواتف تسالاو لينا فالمخزون، ولكن غادي نجيبو الجديد قريباً!";
-    } 
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    if (input.includes('حاسوب') || input.includes('بيسي') || input.includes('لابتوب') || input.includes('ماك')) {
-      const pcs = products.filter(p => p.category === 'حواسيب');
-      if (pcs.length > 0) {
-        return `يلا كتقلب على القوة، كنقترح عليك "${pcs[0].name}" بـ ${pcs[0].price} درهم. \nالمميزات: ${pcs[0].description}.`;
-      }
-      return "الحواسيب غير متوفرة حالياً.";
-    }
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (لترجمة الكود) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { 
+            background-color: #0f172a; 
+            color: #e2e8f0; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+        }
+        .animate-bounce { animation: bounce 1s infinite; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-    if (input.includes('رخيص') || input.includes('ارخص')) {
-      if (products.length === 0) return "المتجر خاوي حاليا.";
-      const cheapest = [...products].sort((a, b) => a.price - b.price)[0];
-      return `أرخص منتج عندنا هو "${cheapest.name}" بـ ${cheapest.price} درهم فقط! ${cheapest.category} ممتازة.`;
-    }
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-    if (input.includes('غالي') || input.includes('احسن')) {
-      if (products.length === 0) return "المتجر خاوي حاليا.";
-      const mostExp = [...products].sort((a, b) => b.price - a.price)[0];
-      return `أحسن وأغلى منتج عندنا (الپريميوم) هو "${mostExp.name}" الثمن ديالو ${mostExp.price} درهم. تحفة فنية!`;
-    }
+        const initialProducts = [
+          { id: 1, name: 'iPhone 15 Pro Max', price: 13500, category: 'هواتف', image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=800&auto=format&fit=crop', description: 'تصميم من التيتانيوم، شريحة A17 Pro الخارقة.' },
+          { id: 2, name: 'MacBook Pro M3', price: 24000, category: 'حواسيب', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop', description: 'قوة لا تضاهى مع معالج M3 الجديد.' },
+          { id: 3, name: 'Sony PlayStation 5', price: 6500, category: 'ألعاب', image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b9087?q=80&w=800&auto=format&fit=crop', description: 'تجربة لعب الجيل الجديد مع رسومات 4K.' },
+          { id: 4, name: 'Apple Watch Ultra', price: 8900, category: 'ساعات ذكية', image: 'https://images.unsplash.com/photo-1695048065099-2d100fb25c56?q=80&w=800&auto=format&fit=crop', description: 'الساعة الأقوى للمغامرين، هيكل تيتانيوم صلب.' }
+        ];
 
-    if (input.includes('سلام') || input.includes('مرحبا') || input.includes('salam')) {
-      return "وعليكم السلام! مرحبا بيك فـ Electro Ilias. معاك Jiro، كيفاش نقدر نساعدك تختار أحسن جهاز ليك اليوم؟";
-    }
+        function App() {
+          const [products, setProducts] = useState(initialProducts);
+          const [view, setView] = useState('store'); 
+          const [cartCount, setCartCount] = useState(0);
+          const [isScrolled, setIsScrolled] = useState(false);
 
-    return "عذراً مفهمتش مزيان القصد ديالك. تقدر تسولني على (هاتف، حاسوب، أرخص منتج، أحسن منتج) وغادي نعطيك المميزات ديالو.";
-  };
+          const [isChatOpen, setIsChatOpen] = useState(false);
+          const [chatInput, setChatInput] = useState('');
+          const [isTyping, setIsTyping] = useState(false);
+          const [messages, setMessages] = useState([
+            { text: 'مرحباً بك في Electro Ilias! ✨ أنا Jiro، المساعد الذكي ديالك. شنو كتقلب تشري اليوم ولا بغيتي نعاونك تختار؟', sender: 'bot' }
+          ]);
+          const messagesEndRef = useRef(null);
 
-  const handleSendMessage = (e) => {
-    e?.preventDefault();
-    if (!chatInput.trim()) return;
+          const [newProduct, setNewProduct] = useState({ name: '', price: '', category: 'هواتف', image: '', description: '' });
 
-    const userMsg = { text: chatInput, sender: 'user' };
-    setMessages(prev => [...prev, userMsg]);
-    const currentInput = chatInput;
-    setChatInput('');
-    setIsTyping(true);
+          useEffect(() => {
+            lucide.createIcons();
+          });
 
-    setTimeout(() => {
-      const botResponseText = generateBotResponse(currentInput);
-      setMessages(prev => [...prev, { text: botResponseText, sender: 'bot' }]);
-      setIsTyping(false);
-    }, 1200); 
-  };
+          useEffect(() => {
+            const handleScroll = () => setIsScrolled(window.scrollY > 20);
+            window.addEventListener('scroll', handleScroll);
+            return () => window.removeEventListener('scroll', handleScroll);
+          }, []);
 
-  return (
-    <div dir="rtl" className="min-h-screen bg-[#0f172a] text-slate-200 font-sans selection:bg-cyan-500 selection:text-white overflow-hidden relative pb-20 sm:pb-0">
-      
-      {/* تأثيرات الإضاءة */}
-      <div className="fixed top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none"></div>
-      <div className="fixed bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[150px] pointer-events-none"></div>
+          useEffect(() => {
+            if (messagesEndRef.current) {
+              messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, [messages, isChatOpen, isTyping]);
 
-      {/* Header */}
-      <header className={`fixed w-full top-0 z-40 transition-all duration-300 ${isScrolled ? 'bg-slate-900/80 backdrop-blur-xl border-b border-white/10 shadow-lg' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-20">
-                
-                {/* Logo */}
-                <div onClick={() => setView('store')} className="flex-shrink-0 flex items-center gap-3 cursor-pointer group">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-cyan-400 blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                      <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2.5 rounded-xl text-white relative z-10 shadow-lg border border-white/20">
-                          <Zap className="w-6 h-6" />
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-black text-2xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
-                        Electro<span className="text-cyan-400">Ilias</span>
-                      </span>
+          const handleAddProduct = (e) => {
+            e.preventDefault();
+            if (!newProduct.name || !newProduct.price) return;
+            const productToAdd = {
+              ...newProduct,
+              id: Date.now(),
+              price: Number(newProduct.price),
+              image: newProduct.image || 'https://images.unsplash.com/photo-1550009158-9ebf6d173303?q=80&w=800&auto=format&fit=crop'
+            };
+            setProducts([productToAdd, ...products]);
+            setNewProduct({ name: '', price: '', category: 'هواتف', image: '', description: '' });
+          };
+
+          const handleDeleteProduct = (id) => setProducts(products.filter(p => p.id !== id));
+          const addToCart = () => setCartCount(prev => prev + 1);
+
+          const generateBotResponse = (userInput) => {
+            const input = userInput.toLowerCase();
+            if (input.includes('هاتف') || input.includes('تليفون') || input.includes('ايفون') || input.includes('تلفون')) {
+              const phones = products.filter(p => p.category === 'هواتف');
+              if (phones.length > 0) return `عندنا هواتف هربانة! بحال "${phones[0].name}" بـ ${phones[0].price} درهم. \nمميزاته: ${phones[0].description}.`;
+              return "حالياً الهواتف تسالاو لينا فالمخزون!";
+            } 
+            if (input.includes('حاسوب') || input.includes('بيسي') || input.includes('لابتوب')) {
+              const pcs = products.filter(p => p.category === 'حواسيب');
+              if (pcs.length > 0) return `يلا كتقلب على القوة، كنقترح عليك "${pcs[0].name}" بـ ${pcs[0].price} درهم.`;
+              return "الحواسيب غير متوفرة حالياً.";
+            }
+            if (input.includes('رخيص')) {
+              if (products.length === 0) return "المتجر خاوي حاليا.";
+              const cheapest = [...products].sort((a, b) => a.price - b.price)[0];
+              return `أرخص منتج عندنا هو "${cheapest.name}" بـ ${cheapest.price} درهم فقط!`;
+            }
+            if (input.includes('غالي') || input.includes('احسن')) {
+              if (products.length === 0) return "المتجر خاوي حاليا.";
+              const mostExp = [...products].sort((a, b) => b.price - a.price)[0];
+              return `أحسن وأغلى منتج عندنا هو "${mostExp.name}" الثمن ديالو ${mostExp.price} درهم.`;
+            }
+            if (input.includes('سلام') || input.includes('مرحبا')) return "وعليكم السلام! مرحبا بيك فـ Electro Ilias. معاك Jiro، كيفاش نعاونك؟";
+            return "عذراً مفهمتش مزيان. تقدر تسولني على (هاتف، حاسوب، أرخص منتج) وغادي نعطيك المميزات ديالو.";
+          };
+
+          const handleSendMessage = (e) => {
+            e?.preventDefault();
+            if (!chatInput.trim()) return;
+            const userMsg = { text: chatInput, sender: 'user' };
+            setMessages(prev => [...prev, userMsg]);
+            const currentInput = chatInput;
+            setChatInput('');
+            setIsTyping(true);
+            setTimeout(() => {
+              const botResponseText = generateBotResponse(currentInput);
+              setMessages(prev => [...prev, { text: botResponseText, sender: 'bot' }]);
+              setIsTyping(false);
+            }, 1000); 
+          };
+
+          return (
+            <div className="min-h-screen bg-[#0f172a] text-slate-200 pb-20 sm:pb-0 relative overflow-hidden">
+              <div className="fixed top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none z-0"></div>
+              <div className="fixed bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[150px] pointer-events-none z-0"></div>
+
+              <header className={`fixed w-full top-0 z-40 transition-all duration-300 ${isScrolled ? 'bg-slate-900/80 backdrop-blur-xl border-b border-white/10 shadow-lg' : 'bg-transparent'}`}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-20">
+                        <div onClick={() => setView('store')} className="flex-shrink-0 flex items-center gap-3 cursor-pointer">
+                            <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2.5 rounded-xl text-white shadow-lg border border-white/20">
+                                <i data-lucide="zap" className="w-6 h-6"></i>
+                            </div>
+                            <span className="font-black text-2xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+                                Electro<span className="text-cyan-400">Ilias</span>
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-4">
+                            <button onClick={() => setView('store')} className={`flex items-center gap-2 px-3 py-2 sm:px-4 rounded-xl font-medium transition-all ${view === 'store' ? 'bg-white/10 text-cyan-400 border border-white/10' : 'text-slate-400 hover:text-white'}`}>
+                              <i data-lucide="store" className="w-5 h-5"></i> <span className="hidden sm:inline">المتجر</span>
+                            </button>
+                            <button onClick={() => setView('admin')} className={`flex items-center gap-2 px-3 py-2 sm:px-4 rounded-xl font-medium transition-all ${view === 'admin' ? 'bg-white/10 text-cyan-400 border border-white/10' : 'text-slate-400 hover:text-white'}`}>
+                              <i data-lucide="settings" className="w-5 h-5"></i> <span className="hidden sm:inline">لوحة التحكم</span>
+                            </button>
+                            <div className="relative p-2 text-slate-300 mr-1 sm:mr-2 border border-white/10 bg-white/5 rounded-xl">
+                              <i data-lucide="shopping-cart" className="w-6 h-6"></i>
+                              {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-slate-900">{cartCount}</span>}
+                            </div>
+                        </div>
                     </div>
                 </div>
+              </header>
 
-                {/* Navigation Buttons */}
-                <div className="flex items-center gap-2 sm:gap-4">
-                    <button onClick={() => setView('store')} className={`flex items-center gap-2 px-3 py-2 sm:px-4 rounded-xl font-medium transition-all duration-300 ${view === 'store' ? 'bg-white/10 text-cyan-400 border border-white/10 shadow-[0_0_15px_rgba(34,211,238,0.1)]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-                      <Store className="w-5 h-5" />
-                      <span className="hidden sm:inline">المتجر</span>
-                    </button>
-                    
-                    <button onClick={() => setView('admin')} className={`flex items-center gap-2 px-3 py-2 sm:px-4 rounded-xl font-medium transition-all duration-300 ${view === 'admin' ? 'bg-white/10 text-cyan-400 border border-white/10 shadow-[0_0_15px_rgba(34,211,238,0.1)]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-                      <Settings className="w-5 h-5" />
-                      <span className="hidden sm:inline">لوحة التحكم</span>
-                    </button>
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 relative z-10">
+                {view === 'store' && (
+                  <div>
+                    <div className="relative rounded-3xl overflow-hidden mb-16 border border-white/10 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-8 sm:p-16 flex flex-col md:flex-row items-center justify-between shadow-2xl">
+                      <div className="relative z-10 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-sm font-medium mb-6">
+                          <i data-lucide="sparkles" className="w-4 h-4"></i> مدعوم بالمساعد Jiro
+                        </div>
+                        <h1 className="text-4xl sm:text-6xl font-black mb-6 text-white">مرحباً بك في <br/><span className="text-cyan-400">عالم Electro Ilias</span></h1>
+                        <p className="text-slate-400 text-lg sm:text-xl mb-8">اكتشف أحدث الإصدارات من الهواتف الذكية، الحواسيب، وأجهزة الألعاب.</p>
+                      </div>
+                    </div>
 
-                    <div className="relative p-2 text-slate-300 cursor-pointer hover:text-cyan-400 transition-colors mr-1 sm:mr-2 border border-white/10 bg-white/5 rounded-xl backdrop-blur-sm">
-                      <ShoppingCart className="w-6 h-6" />
-                      {cartCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-slate-900 shadow-[0_0_10px_rgba(34,211,238,0.5)]">
-                          {cartCount}
-                        </span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8">أحدث المنتجات</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {products.map((product) => (
+                        <div key={product.id} className="bg-slate-800/40 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md flex flex-col">
+                          <div className="aspect-[4/4] bg-slate-900 p-6 flex items-center justify-center relative">
+                            <img src={product.image} alt={product.name} className="w-full h-full object-contain relative z-0"/>
+                            <div className="absolute top-4 right-4 z-20 bg-black/50 border border-white/10 px-3 py-1 rounded-full text-xs font-medium text-cyan-400">{product.category}</div>
+                          </div>
+                          <div className="p-6 flex flex-col flex-grow bg-slate-900/80">
+                            <h3 className="text-xl font-bold text-white mb-2">{product.name}</h3>
+                            <p className="text-sm text-slate-400 mb-6 flex-grow">{product.description}</p>
+                            <div className="flex items-center justify-between border-t border-white/10 pt-4">
+                              <span className="text-2xl font-black text-white">{product.price} <span className="text-sm text-cyan-500">MAD</span></span>
+                              <button onClick={addToCart} className="bg-white/5 border border-white/10 hover:bg-cyan-500 hover:text-slate-900 text-white p-3 rounded-xl transition-all">
+                                <i data-lucide="shopping-cart" className="w-5 h-5"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {view === 'admin' && (
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div className="lg:col-span-4">
+                      <div className="bg-slate-800/40 border border-white/10 rounded-2xl p-6 shadow-xl">
+                        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-white/10 pb-4">
+                          <i data-lucide="plus" className="w-5 h-5 text-cyan-400"></i> إضافة منتج
+                        </h2>
+                        <form onSubmit={handleAddProduct} className="space-y-4">
+                          <input type="text" required value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white outline-none" placeholder="اسم المنتج"/>
+                          <input type="number" required value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white outline-none" placeholder="الثمن (MAD)"/>
+                          <select value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white outline-none">
+                            <option value="هواتف">هواتف</option><option value="حواسيب">حواسيب</option><option value="ألعاب">ألعاب</option>
+                          </select>
+                          <input type="url" value={newProduct.image} onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white text-left outline-none" placeholder="رابط الصورة (URL)" dir="ltr"/>
+                          <textarea value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white h-24 resize-none outline-none" placeholder="الوصف..."></textarea>
+                          <button type="submit" className="w-full bg-cyan-500 text-slate-900 font-bold py-3 rounded-xl">إضافة للمخزون</button>
+                        </form>
+                      </div>
+                    </div>
+                    <div className="lg:col-span-8">
+                      <div className="bg-slate-800/40 border border-white/10 rounded-2xl shadow-xl overflow-hidden min-h-[500px]">
+                        <div className="px-6 py-5 border-b border-white/10 bg-slate-900/50 flex justify-between">
+                          <h2 className="text-xl font-bold text-white">المخزون الحالي ({products.length})</h2>
+                        </div>
+                        <div className="p-4 space-y-4">
+                          {products.map((product) => (
+                            <div key={product.id} className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl flex flex-col sm:flex-row items-center gap-5">
+                              <img src={product.image} className="w-16 h-16 object-contain bg-white rounded-lg p-1"/>
+                              <div className="flex-grow text-center sm:text-right">
+                                <h3 className="font-bold text-white">{product.name}</h3>
+                                <span className="text-xs text-cyan-400">{product.price} MAD</span>
+                              </div>
+                              <button onClick={() => handleDeleteProduct(product.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg">
+                                <i data-lucide="trash-2" className="w-5 h-5"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </main>
+
+              {/* Jiro Chatbot */}
+              <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start">
+                {isChatOpen && (
+                  <div className="mb-4 w-80 bg-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                    <div className="bg-slate-900 p-4 border-b border-white/10 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-cyan-500 p-2 rounded-full text-slate-900"><i data-lucide="bot" className="w-5 h-5"></i></div>
+                        <div>
+                          <h3 className="font-bold text-white text-sm">Jiro</h3>
+                          <p className="text-xs text-cyan-400">متصل الآن</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setIsChatOpen(false)} className="text-slate-400 p-1.5"><i data-lucide="x" className="w-5 h-5"></i></button>
+                    </div>
+                    <div className="h-80 overflow-y-auto p-4 space-y-4 bg-slate-900/50">
+                      {messages.map((msg, idx) => (
+                        <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${msg.sender === 'user' ? 'bg-cyan-600 text-white rounded-br-sm' : 'bg-slate-700 text-slate-200 rounded-bl-sm'}`}>
+                            {msg.text}
+                          </div>
+                        </div>
+                      ))}
+                      {isTyping && (
+                        <div className="flex justify-start">
+                          <div className="bg-slate-700 rounded-2xl px-4 py-3 flex gap-1.5"><span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"></span><span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay:'0.1s'}}></span><span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay:'0.2s'}}></span></div>
+                        </div>
                       )}
+                      <div ref={messagesEndRef} />
                     </div>
-                </div>
-            </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 relative z-10">
-        
-        {/* ===================== واجهة المتجر ===================== */}
-        {view === 'store' && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-            
-            <div className="relative rounded-3xl overflow-hidden mb-16 border border-white/10 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-8 sm:p-16 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl">
-              <div className="relative z-10 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-sm font-medium mb-6 backdrop-blur-md">
-                  <Sparkles className="w-4 h-4" /> مدعوم بالمساعد Jiro
-                </div>
-                <h1 className="text-4xl sm:text-6xl font-black mb-6 leading-tight text-white">
-                  مرحباً بك في <br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">
-                    عالم Electro Ilias
-                  </span>
-                </h1>
-                <p className="text-slate-400 text-lg sm:text-xl mb-8 font-light leading-relaxed">
-                  اكتشف أحدث الإصدارات من الهواتف الذكية، الحواسيب، وأجهزة الألعاب. جودة لا تضاهى وتجربة تسوق فريدة مع مساعدك الشخصي.
-                </p>
-              </div>
-
-              <div className="relative z-10 hidden md:flex items-center justify-center w-full max-w-md">
-                <div className="relative w-64 h-64 sm:w-80 sm:h-80">
-                   <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 rounded-full blur-3xl"></div>
-                   <div className="relative w-full h-full bg-slate-800/80 border border-white/10 rounded-full backdrop-blur-md flex items-center justify-center shadow-2xl border-t-cyan-400/50">
-                      <Cpu className="w-32 h-32 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
-                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-end mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
-                أحدث المنتجات <span className="h-px w-12 bg-cyan-500/50 block"></span>
-              </h2>
-            </div>
-
-            {products.length === 0 ? (
-              <div className="text-center py-24 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
-                <Package className="w-20 h-20 text-slate-600 mx-auto mb-4" />
-                <h3 className="text-2xl font-medium text-slate-300">المتجر فارغ حالياً</h3>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-                {products.map((product) => (
-                  <div key={product.id} className="group relative bg-slate-800/40 border border-white/10 rounded-2xl overflow-hidden hover:border-cyan-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] backdrop-blur-md flex flex-col">
-                    <div className="aspect-[4/4] overflow-hidden relative bg-slate-900 p-6 flex items-center justify-center">
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-10"></div>
-                      <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 drop-shadow-2xl relative z-0"/>
-                      <div className="absolute top-4 right-4 z-20 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-medium text-cyan-400">
-                        {product.category}
-                      </div>
-                    </div>
-                    <div className="p-6 flex flex-col flex-grow relative z-20 bg-gradient-to-b from-transparent to-slate-900/80">
-                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{product.name}</h3>
-                      <p className="text-sm text-slate-400 mb-6 line-clamp-2 leading-relaxed flex-grow">{product.description}</p>
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
-                        <div className="flex flex-col">
-                          <span className="text-2xl font-black text-white">{product.price} <span className="text-sm font-normal text-cyan-500">MAD</span></span>
-                        </div>
-                        <button onClick={addToCart} className="bg-white/5 border border-white/10 hover:bg-cyan-500 hover:text-slate-900 text-white p-3 rounded-xl transition-all">
-                          <ShoppingCart className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
+                    <form onSubmit={handleSendMessage} className="p-3 bg-slate-800 border-t border-white/10 flex">
+                      <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="سولني على المنتجات..." className="w-full bg-slate-900 border border-white/10 rounded-full py-2 px-4 text-sm text-white outline-none"/>
+                      <button type="submit" disabled={!chatInput.trim() || isTyping} className="bg-cyan-500 text-slate-900 p-2 rounded-full ml-2 mr-[-40px] z-10 w-9 h-9 flex justify-center items-center"><i data-lucide="send" className="w-4 h-4 ml-1"></i></button>
+                    </form>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ===================== واجهة إدارة المنتجات ===================== */}
-        {view === 'admin' && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 max-w-6xl mx-auto">
-             <div className="mb-10 flex items-center gap-4 bg-slate-800/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-xl text-white shadow-lg">
-                <Settings className="w-8 h-8" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">إدارة نظام Electro Ilias</h1>
-                <p className="text-cyan-400/80 mt-1">التحكم الكامل في منتجات المتجر</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* فورم إضافة منتج */}
-              <div className="lg:col-span-4">
-                <div className="bg-slate-800/40 border border-white/10 rounded-2xl p-6 sticky top-28 backdrop-blur-md shadow-xl">
-                  <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-white/10 pb-4">
-                    <Plus className="w-5 h-5 text-cyan-400" /> إضافة منتج
-                  </h2>
-                  <form onSubmit={handleAddProduct} className="space-y-4">
-                    <input type="text" required value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className="block w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:border-cyan-500 text-white outline-none" placeholder="اسم المنتج"/>
-                    <input type="number" required value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} className="block w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:border-cyan-500 text-white outline-none" placeholder="الثمن (MAD)"/>
-                    <select value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} className="block w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:border-cyan-500 text-white outline-none appearance-none cursor-pointer">
-                      <option value="هواتف" className="bg-slate-800">هواتف</option>
-                      <option value="حواسيب" className="bg-slate-800">حواسيب</option>
-                      <option value="ألعاب" className="bg-slate-800">ألعاب</option>
-                      <option value="ساعات ذكية" className="bg-slate-800">ساعات ذكية</option>
-                    </select>
-                    <input type="url" value={newProduct.image} onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} className="block w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:border-cyan-500 text-white text-left outline-none" placeholder="رابط الصورة" dir="ltr"/>
-                    <textarea value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} className="block w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:border-cyan-500 text-white h-24 resize-none outline-none" placeholder="الوصف..."></textarea>
-                    <button type="submit" className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)]">إضافة للمخزون</button>
-                  </form>
-                </div>
-              </div>
-
-              {/* قائمة المنتجات */}
-              <div className="lg:col-span-8">
-                <div className="bg-slate-800/40 border border-white/10 rounded-2xl backdrop-blur-md shadow-xl overflow-hidden flex flex-col h-full min-h-[500px]">
-                  <div className="px-6 py-5 border-b border-white/10 bg-slate-900/50 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-white">المخزون الحالي ({products.length})</h2>
-                  </div>
-                  <div className="flex-grow overflow-y-auto p-4 space-y-4">
-                    {products.map((product) => (
-                      <div key={product.id} className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl flex flex-col sm:flex-row items-center gap-5">
-                        <img src={product.image} className="w-16 h-16 object-contain mix-blend-multiply bg-white rounded-lg p-1"/>
-                        <div className="flex-grow text-center sm:text-right">
-                          <h3 className="font-bold text-white">{product.name}</h3>
-                          <span className="text-xs text-cyan-400">{product.price} MAD</span>
-                        </div>
-                        <button onClick={() => handleDeleteProduct(product.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
-                          <Trash2 className="w-5 h-5" /> 
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* ===================== المساعد الذكي (Jiro Chatbot) ===================== */}
-      <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start">
-        
-        {/* نافذة المحادثة */}
-        {isChatOpen && (
-          <div className="mb-4 w-80 sm:w-96 bg-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-[0_0_40px_rgba(34,211,238,0.15)] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-300 origin-bottom-left">
-            {/* رأس النافذة */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-4 border-b border-white/10 flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="bg-cyan-500 p-2 rounded-full text-slate-900">
-                    <Bot className="w-5 h-5" />
-                  </div>
-                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-slate-900"></div>
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-sm">Jiro</h3>
-                  <p className="text-xs text-cyan-400">متصل الآن</p>
-                </div>
-              </div>
-              <button onClick={() => setIsChatOpen(false)} className="text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1.5 rounded-lg">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* مساحة الرسائل */}
-            <div className="h-80 overflow-y-auto p-4 space-y-4 bg-slate-900/50 scrollbar-hide">
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.sender === 'user' 
-                      ? 'bg-cyan-600 text-white rounded-br-sm' 
-                      : 'bg-slate-700 text-slate-200 border border-white/5 rounded-bl-sm'
-                  }`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              
-              {/* أيقونة جاري الكتابة */}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-slate-700 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5 items-center">
-                    <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"></span>
-                    <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce delay-100"></span>
-                    <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce delay-200"></span>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* مكان إدخال النص */}
-            <form onSubmit={handleSendMessage} className="p-3 bg-slate-800 border-t border-white/10">
-              <div className="relative flex items-center">
-                <input 
-                  type="text" 
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="سولني على المنتجات..."
-                  className="w-full bg-slate-900/80 border border-white/10 rounded-full py-3 pr-4 pl-12 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
-                />
-                <button 
-                  type="submit" 
-                  disabled={!chatInput.trim() || isTyping}
-                  className="absolute left-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 disabled:opacity-50 disabled:hover:bg-cyan-500 p-2 rounded-full transition-colors flex items-center justify-center"
-                >
-                  <Send className="w-4 h-4 ml-0.5" />
+                )}
+                <button onClick={() => setIsChatOpen(!isChatOpen)} className="bg-cyan-500 text-slate-900 p-4 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.4)] w-14 h-14 flex justify-center items-center">
+                  {isChatOpen ? <i data-lucide="x" className="w-7 h-7"></i> : <i data-lucide="message-square" className="w-7 h-7"></i>}
                 </button>
               </div>
-            </form>
-          </div>
-        )}
+            </div>
+          );
+        }
 
-        {/* زر فتح المحادثة */}
-        <button 
-          onClick={() => setIsChatOpen(!isChatOpen)}
-          className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 p-4 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all transform hover:scale-105 flex items-center justify-center"
-        >
-          {isChatOpen ? <X className="w-7 h-7" /> : <MessageSquare className="w-7 h-7" />}
-        </button>
-      </div>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
 
-    </div>
-  );
-}
+
 
 
